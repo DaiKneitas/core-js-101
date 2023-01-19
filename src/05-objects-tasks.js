@@ -112,35 +112,109 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
+class ClassSelector {
+  constructor() {
+    this.order = 0;
+    this.result = '';
+    this.error = {
+      order:
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element',
+      occur:
+        'Element, id and pseudo-element should not occur more then one time inside the selector',
+    };
+    this.selectors = {
+      element: {
+        exists: false,
+        position: 0,
+      },
+      id: {
+        exists: false,
+        position: 1,
+      },
+      pseudoElement: {
+        exists: false,
+        position: 5,
+      },
+    };
+  }
+
+  set position(next) {
+    if (next < this.order) throw new Error(this.error.order);
+    this.order = next;
+  }
+
+  checkSelector(selector) {
+    if (this.selectors[selector].exists) throw new Error(this.error.occur);
+    this.selectors[selector].exists = true;
+    this.position = this.selectors[selector].position;
+    return this;
+  }
+
+  element(value) {
+    this.checkSelector('element');
+    this.result += value;
+    return this;
+  }
+
+  id(value) {
+    this.checkSelector('id');
+    this.result += `#${value}`;
+    return this;
+  }
+
+  class(value) {
+    this.position = 2;
+    this.result += `.${value}`;
+    return this;
+  }
+
+  attr(value) {
+    this.position = 3;
+    this.result += `[${value}]`;
+    return this;
+  }
+
+  pseudoClass(value) {
+    this.position = 4;
+    this.result += `:${value}`;
+    return this;
+  }
+
+  pseudoElement(value) {
+    this.checkSelector('pseudoElement');
+    this.result += `::${value}`;
+    return this;
+  }
+
+  combine(selector1, combinator, selector2) {
+    this.result = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this;
+  }
+
+  stringify() {
+    return this.result;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  id(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  class(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  attr(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  generateMethods() {
+    [
+      'element',
+      'id',
+      'class',
+      'attr',
+      'pseudoClass',
+      'pseudoElement',
+      'combine',
+    ].forEach((selector) => {
+      cssSelectorBuilder[selector] = selector === 'combine'
+        ? (s1, combinator, s2) => new ClassSelector()[selector](s1, combinator, s2)
+        : (value) => new ClassSelector()[selector](value);
+    });
   },
 };
+
+cssSelectorBuilder.generateMethods();
 
 module.exports = {
   Rectangle,
