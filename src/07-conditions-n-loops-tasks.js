@@ -124,8 +124,17 @@ function isTriangle(a, b, c) {
  *   { top:20, left:20, width: 20, height: 20 }    =>  false
  *
  */
-function doRectanglesOverlap(/* rect1, rect2 */) {
-  throw new Error('Not implemented');
+function doRectanglesOverlap(rect1, rect2) {
+  const rect1Right = rect1.left + rect1.width;
+  const rect1Bottom = rect1.top + rect1.height;
+  const rect2Right = rect2.left + rect2.width;
+  const rect2Bottom = rect2.top + rect2.height;
+  return (
+    rect1.left < rect2Right
+    && rect1Right > rect2.left
+    && rect1.top < rect2Bottom
+    && rect1Bottom > rect2.top
+  );
 }
 
 /**
@@ -265,8 +274,28 @@ function reverseInteger(num) {
  *   5436468789016589 => false
  *   4916123456789012 => false
  */
-function isCreditCardNumber(/* ccn */) {
-  throw new Error('Not implemented');
+function isCreditCardNumber(ccn) {
+  const str = ccn.toString();
+  const strLength = str.length;
+  let sum = 0;
+  let isSecond = false;
+
+  if (strLength < 2) {
+    return false;
+  }
+
+  for (let i = strLength - 1; i >= 0; i -= 1) {
+    let digit = Number(str.charAt(i));
+    if (isSecond) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+    sum += digit;
+    isSecond = !isSecond;
+  }
+  return sum % 10 === 0;
 }
 
 /**
@@ -316,8 +345,30 @@ function getDigitalRoot(num) {
  *   '{)' = false
  *   '{[(<{[]}>)]}' = true
  */
-function isBracketsBalanced(/* str */) {
-  throw new Error('Not implemented');
+function isBracketsBalanced(str) {
+  const arr = [];
+  const openBrackets = new Set(['[', '(', '{', '<']);
+  const closedBrackets = new Set([']', ')', '}', '>']);
+  const bracketPairs = {
+    ']': '[',
+    ')': '(',
+    '}': '{',
+    '>': '<',
+  };
+
+  for (let i = 0; i < str.length; i += 1) {
+    const char = str[i];
+    if (openBrackets.has(char)) {
+      arr.push(char);
+    } else if (closedBrackets.has(char)) {
+      if (arr.length === 0 || arr[arr.length - 1] !== bracketPairs[char]) {
+        return false;
+      }
+      arr.pop();
+    }
+  }
+
+  return arr.length === 0;
 }
 
 /**
@@ -340,8 +391,8 @@ function isBracketsBalanced(/* str */) {
  *    365, 4  => '11231'
  *    365, 10 => '365'
  */
-function toNaryString(/* num, n */) {
-  throw new Error('Not implemented');
+function toNaryString(num, n) {
+  return num.toString(n);
 }
 
 /**
@@ -356,8 +407,21 @@ function toNaryString(/* num, n */) {
  *   ['/web/assets/style.css', '/.bin/mocha',  '/read.me'] => '/'
  *   ['/web/favicon.ico', '/web-scripts/dump', '/verbalizer/logs'] => '/'
  */
-function getCommonDirectoryPath(/* pathes */) {
-  throw new Error('Not implemented');
+function getCommonDirectoryPath(pathes) {
+  let index = 1;
+  let charIndex = pathes[0].length - 1;
+  let commonPath = pathes[0];
+  while (index < pathes.length) {
+    while (charIndex > -1) {
+      if (pathes[index][charIndex] !== commonPath[charIndex]) {
+        commonPath = commonPath.slice(0, charIndex);
+      }
+      charIndex -= 1;
+    }
+    charIndex = pathes[0].length - 1;
+    index += 1;
+  }
+  return commonPath.slice(0, commonPath.lastIndexOf('/') + 1);
 }
 
 /**
